@@ -32,9 +32,25 @@ function th_get_data() {
 		}
 	}
 
-	# set some common variables to use later on
-	$actions = 0;
-	$hooks = array();
+	echo '<h2>' . __( 'The theme hooks to', 'theme-hooks' ) . '</h2>';
+	# Let us see what the theme is hooking to
+	$hooks = 0;
+	$hook_list = '<ol>';
+	foreach ( $content as $key => $file ) {
+		if ( preg_match_all( '/add_(filter|action)/', $file, $matches ) ) {	
+			# build out list item
+			$hook_list .= '<li>';
+			$hook_list .= sprintf( __( 'The file %s hooks to <strong>%d</strong> hooks or filters', 'theme-hooks' ), $key, count( $matches[0] ) );
+			$hook_list .= '</li>';
+			# keep track of how many hooks
+			$hooks += count( $matches[0] );
+		};
+	}
+	$hook_list .= '</ol>';
+
+	# List how many actions it uses and where
+	printf( __( '<strong>%s</strong> hooks to <strong>%d</strong> actions or filters. They are: <br> %s', 'theme-hooks' ), wp_get_theme()->Name, $hooks, $hook_list );
+
 	$total = 0;
 	$output = '<ol>';
 	foreach ( $content as $key => $file ) {
@@ -45,6 +61,7 @@ function th_get_data() {
 	}
 	$output .= '</ol>';
 
+	echo '<h2>' . __( 'The theme creates how many hooks now?', 'theme-hooks' ) . '</h2>';
 	printf( __( '<strong>%s</strong> has a total of <strong>%d</strong> hooks. They are as follows: %s', 'theme-hooks' ), wp_get_theme()->Name, $total, $output );
 }
 
