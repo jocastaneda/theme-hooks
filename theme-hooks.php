@@ -37,27 +37,37 @@ function th_get_data() {
 	$hooks = 0;
 	$hook_list = '<ol>';
 	foreach ( $content as $key => $file ) {
-		if ( preg_match_all( '/add_(filter|action)/', $file, $matches ) ) {	
-			# build out list item
+		$action = preg_match_all( '/add_action/', $file, $hooked );
+		$filter = preg_match_all( '/add_filter/', $file, $filtered );
+		$hooks += count( $hooked[0] ) + count( $filtered[0] );
+		
+		if ( $hooked[0] || $filtered[0] ) {
 			$hook_list .= '<li>';
-			$hook_list .= sprintf( __( 'The file %s hooks to <strong>%d</strong> hooks or filters', 'theme-hooks' ), $key, count( $matches[0] ) );
+			$hook_list .= sprintf( __( 'There are <strong>%d actions</strong> and <strong>%d filters</strong> applied in file: <code>%s</code>', 'theme-hooks' ), count( $hooked[0] ), count( $filtered[0] ), $key );
 			$hook_list .= '</li>';
-			# keep track of how many hooks
-			$hooks += count( $matches[0] );
-		};
+		}
+		
 	}
 	$hook_list .= '</ol>';
 
 	# List how many actions it uses and where
-	printf( __( '<strong>%s</strong> hooks to <strong>%d</strong> actions or filters. They are: <br> %s', 'theme-hooks' ), wp_get_theme()->Name, $hooks, $hook_list );
+	printf( __( '<strong>%s</strong> hooks to <span class="emphasis">%d</span> actions or filters. They are:<br> %s', 'theme-hooks' ), wp_get_theme()->Name, $hooks, $hook_list );
 
 	$total = 0;
+	$actions = 0;
+	$filters = 0;
 	$output = '<ol>';
 	foreach ( $content as $key => $file ) {
-		if ( preg_match_all( '/(do_action|apply_filters)/i', $file, $matches ) ) {
-			$output .= '<li>' . sprintf( __( 'The file: %s contains <strong>%d hooks</strong>', 'theme-hooks' ), $key, count( $matches[0] ) ) . '</li>';
-			$total += count( $matches[0] );
-		};
+		# get how many action hooks are being created
+		$actions = preg_match_all( '/do_action/i', $file, $action );
+		$filters = preg_match_all( '/apply_filters/i', $file, $filter );
+		$total += count( $action[0] ) + count( $filter[0] );
+
+		if ( $action[0] || $filter[0] ) {
+			$output .= '<li>';
+			$output .= sprintf( __( 'There are <strong>%d actions</strong> and <strong>%d filters</strong> in the file: <code>%s</code>', 'theme-hooks' ), count( $action[0] ), count( $filter[0] ), $key );
+			$output .= '</li>';
+		}
 	}
 	$output .= '</ol>';
 
@@ -67,7 +77,7 @@ function th_get_data() {
 
 function th_render_page() {
 ?>
-	<div class="wrap">
+	<div class="wrap theme-hooks">
 	<h1><?php _e( 'Theme Hooks', 'theme-hooks' ); ?></h1>
 		<?php do_action( 'th_print_hooks' ); ?>
 	</div>
